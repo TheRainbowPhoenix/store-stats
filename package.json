@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "start": "tsx render-server.ts",
+    "dev": "tsx watch render-server.ts"
+  },
   "engines": {
     "node": "20.x"
   },
@@ -10,5 +14,8 @@
     "@hono/node-server": "^1.19.6",
     "@upstash/redis": "^1.35.6",
     "hono": "^4.10.2"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.6"
   }
 }

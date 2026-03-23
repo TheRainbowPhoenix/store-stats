@@ -1,8 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { handle } from 'hono/vercel';
 import { Redis } from '@upstash/redis';
-import { serve } from '@hono/node-server';
 
 const env =
   (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {};
@@ -283,13 +281,5 @@ app.get("/stats/:appId", async (c) => {
   });
 });
 
-// For Vercel Edge / Cloudflare Workers
-export const config = {
-  runtime: 'edge',
-};
-
-export default handle(app);
-
-if (env.RENDER) {
-  serve({ fetch: app.fetch, port: Number(env.PORT) || 3000 });
-}
+// For Vercel Hono integration
+export default app;
