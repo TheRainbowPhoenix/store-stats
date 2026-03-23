@@ -1,13 +1,17 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { handle } from 'hono/vercel';
 import { Redis } from '@upstash/redis';
 import { serve } from '@hono/node-server';
+
+const env =
+  (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {};
 
 // 1. Initialize Upstash Redis (Requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN env vars)
 // Get these for free at https://upstash.com
 const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || '',
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
+  url: env.UPSTASH_REDIS_REST_URL || '',
+  token: env.UPSTASH_REDIS_REST_TOKEN || '',
 });
 
 const app = new Hono();
@@ -118,7 +122,7 @@ app.get("/report-all-stats-please", async (c) => {
 // 3. Sync all stats from another compatible API (Protected with SYNC_SECRET)
 app.post("/sync-from-source", async (c) => {
   const secretFromQuery = c.req.query("secret");
-  const syncSecret = process.env.SYNC_SECRET;
+  const syncSecret = env.SYNC_SECRET;
 
   if (!syncSecret) {
     return c.json({ error: "SYNC_SECRET is not configured on this server" }, 500);
@@ -280,8 +284,12 @@ app.get("/stats/:appId", async (c) => {
 });
 
 // For Vercel Edge / Cloudflare Workers
-export default app;
+export const config = {
+  runtime: 'edge',
+};
 
-if (process.env.RENDER) {
-  serve({ fetch: app.fetch, port: Number(process.env.PORT) || 3000 });
+export default handle(app);
+
+if (env.RENDER) {
+  serve({ fetch: app.fetch, port: Number(env.PORT) || 3000 });
 }
